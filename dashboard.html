@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    :root {
+      --primary: #00B14F;
+      --bg-color: #F4F7F6;
+      --card-bg: #FFFFFF;
+      --text-main: #1F2937;
+      --text-muted: #6B7280;
+      --gold: #F59E0B;
+      --silver: #9CA3AF;
+      --bronze: #D97706;
+    }
+    
+    body { 
+      font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-main);
+      margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+    }
+
+    .top-bar {
+      width: 100%; padding: 20px; display: flex; align-items: center; justify-content: space-between;
+      box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+      position: sticky; top: 0; z-index: 10;
+    }
+    
+    .btn-back {
+      background: var(--bg-color); border: none; width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; color: #4b5563; font-size: 20px; text-decoration: none;
+    }
+
+    .page-title { font-size: 18px; font-weight: 600; margin: 0; }
+    
+    .container { width: 90%; max-width: 600px; margin: 20px auto; padding-bottom: 40px; }
+
+    /* Stats Card */
+    .stat-card {
+      background: linear-gradient(135deg, var(--primary) 0%, #00d25e 100%);
+      border-radius: 20px; padding: 24px; color: white; display: flex; align-items: center; gap: 20px;
+      box-shadow: 0 10px 20px rgba(0, 177, 79, 0.2); margin-bottom: 24px;
+    }
+    .stat-icon { background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+    .stat-info h3 { margin: 0; font-size: 36px; font-weight: 700; line-height: 1; }
+    .stat-info p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
+
+    /* Section Header */
+    .section-header { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 15px; }
+    .section-header i { color: var(--primary); font-size: 20px; }
+
+    /* Leaderboard */
+    .card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 24px; }
+    
+    .leaderboard-list { display: flex; flex-direction: column; gap: 12px; }
+    .leader-item { display: flex; align-items: center; padding: 12px 16px; background: var(--bg-color); border-radius: 16px; }
+    
+    .rank-badge { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; margin-right: 15px; }
+    .rank-1 { background: #FEF3C7; color: var(--gold); }
+    .rank-2 { background: #F3F4F6; color: var(--silver); }
+    .rank-3 { background: #FEF3C7; color: var(--bronze); } /* Bronze bg fallback */
+    .rank-other { background: white; color: var(--text-muted); border: 1px solid #E5E7EB; }
+
+    .leader-name { flex-grow: 1; font-weight: 600; font-size: 15px; }
+    .leader-time { font-size: 14px; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 4px; }
+
+    /* Table Logs */
+    .log-list { display: flex; flex-direction: column; gap: 0; }
+    .log-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
+    .log-item:last-child { border-bottom: none; }
+    .log-detail h4 { margin: 0; font-size: 14px; font-weight: 600; }
+    .log-detail p { margin: 4px 0 0; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;}
+    .log-time { background: #e6f7ec; color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .map-link { color: #3b82f6; text-decoration: none; margin-left: 5px; }
+
+    /* Loading Overlay */
+    #loading { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #loading i { font-size: 40px; color: var(--primary); margin-bottom: 15px; }
+    #loading p { font-weight: 600; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <? var url = getScriptUrl(); ?>
+  
+  <div class="top-bar">
+    <a href="<?= url ?>" class="btn-back"><i class="ph ph-arrow-left"></i></a>
+    <h2 class="page-title">แผงควบคุม (Dashboard)</h2>
+    <div style="width: 40px;"></div>
+  </div>
+
+  <div id="loading">
+    <i class="ph ph-spinner ph-spin"></i>
+    <p>กำลังประมวลผลข้อมูลสถิติ...</p>
+  </div>
+
+  <div class="container" id="dashboard-content" style="display: none;">
+    
+    <!-- สถิติวันนี้ -->
+    <div class="stat-card">
+      <div class="stat-icon"><i class="ph ph-users-three"></i></div>
+      <div class="stat-info">
+        <h3 id="todayCount">0</h3>
+        <p>พนักงานที่เข้างานวันนี้ (คน)</p>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="section-header"><i class="ph ph-medal"></i> Top 5 คนมาเช้าที่สุด (ในรอบสัปดาห์)</div>
+    <div class="card">
+      <div class="leaderboard-list" id="leaderboardList">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- ประวัติล่าสุด -->
+    <div class="section-header"><i class="ph ph-clock-counter-clockwise"></i> ประวัติการสแกนล่าสุด (10 รายการ)</div>
+    <div class="card">
+      <div class="log-list" id="recentList">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    window.onload = function() {
+      google.script.run.withSuccessHandler(function(data) {
+        // อัปเดตยอดวันนี้
+        document.getElementById('todayCount').innerText = data.todayCount;
+
+        // วาด Leaderboard
+        let lbHtml = '';
+        if(data.leaderboard.length === 0) {
+          lbHtml = '<div style="text-align:center; color:#9ca3af; font-size:14px; padding:10px;">ยังไม่มีข้อมูลในสัปดาห์นี้</div>';
+        } else {
+          data.leaderboard.forEach((user, index) => {
+            let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other';
+            let icon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index+1);
+            lbHtml += `
+              <div class="leader-item">
+                <div class="rank-badge ${rankClass}">${icon}</div>
+                <div class="leader-name">${user.name}</div>
+                <div class="leader-time"><i class="ph ph-clock"></i> ${user.time.substring(0,5)} น.</div>
+              </div>
+            `;
+          });
+        }
+        document.getElementById('leaderboardList').innerHTML = lbHtml;
+
+        // วาดประวัติล่าสุด
+        let logsHtml = '';
+        if(data.recentLogs.length === 0) {
+          logsHtml = '<div style="text-align:center; color:#9ca3af; font-size:14px; padding:10px;">ยังไม่มีประวัติการสแกน</div>';
+        } else {
+          data.recentLogs.forEach(log => {
+            let mapIcon = log.mapLink ? `<a href="${log.mapLink}" target="_blank" class="map-link"><i class="ph ph-map-pin"></i></a>` : '';
+            logsHtml += `
+              <div class="log-item">
+                <div class="log-detail">
+                  <h4>${log.name}</h4>
+                  <p><i class="ph ph-calendar-blank"></i> ${log.dateStr} ${mapIcon}</p>
+                </div>
+                <div class="log-time">${log.timeStr.substring(0,5)} น.</div>
+              </div>
+            `;
+          });
+        }
+        document.getElementById('recentList').innerHTML = logsHtml;
+
+        // ซ่อน Loading และแสดงหน้า Dashboard
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
+
+      }).getDashboardData();
+    };
+  </script>
+</body>
+</html>
