@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    :root {
+      --primary: #00B14F;
+      --bg-color: #F4F7F6;
+      --card-bg: #FFFFFF;
+      --text-main: #1F2937;
+      --text-muted: #6B7280;
+    }
+    
+    body { 
+      font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: var(--text-main);
+      margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+    }
+
+    .top-bar {
+      width: 100%; padding: 20px; display: flex; align-items: center; justify-content: space-between;
+      box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+      position: sticky; top: 0; z-index: 10;
+    }
+    
+    .btn-back {
+      background: var(--bg-color); border: none; width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; color: #4b5563; font-size: 20px; text-decoration: none;
+    }
+
+    .page-title { font-size: 18px; font-weight: 600; margin: 0; }
+    .container { width: 90%; max-width: 500px; margin: 20px auto; padding-bottom: 40px; }
+
+    /* Name Selector */
+    .name-selector { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
+    .name-selector label { font-weight: 600; font-size: 14px; color: var(--text-muted); display: block; margin-bottom: 8px;}
+    .name-selector select { 
+      width: 100%; padding: 14px; font-size: 16px; border: 2px solid #e5e7eb; 
+      border-radius: 12px; font-family: 'Sarabun'; outline: none; background: #f9fafb;
+    }
+    .name-selector button {
+      width: 100%; margin-top: 15px; background: var(--primary); color: white; border: none;
+      padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
+    }
+
+    /* Balance Card */
+    .balance-card {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-radius: 20px; padding: 24px; color: white; display: none; flex-direction: column; align-items: center;
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2); margin-bottom: 24px; text-align: center;
+    }
+    .balance-title { font-size: 14px; opacity: 0.9; margin-bottom: 5px; }
+    .balance-amount { font-size: 48px; font-weight: 700; line-height: 1; margin: 0; }
+    .balance-unit { font-size: 16px; font-weight: normal; }
+    
+    .stats-row { display: flex; width: 100%; justify-content: space-around; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;}
+    .stat-box p { margin: 0; font-size: 12px; opacity: 0.9;}
+    .stat-box h4 { margin: 5px 0 0; font-size: 18px;}
+
+    /* History Table */
+    .history-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: none;}
+    .history-card h3 { margin: 0 0 15px; font-size: 16px; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
+    
+    .log-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+    .log-item:last-child { border-bottom: none; }
+    .log-date { font-weight: 600; font-size: 14px; color: var(--text-main);}
+    .log-times { font-size: 12px; color: var(--text-muted); margin-top: 4px;}
+    .log-comp { text-align: right; font-size: 13px; font-weight: 600;}
+    .text-green { color: #10b981; }
+    .text-red { color: #ef4444; }
+
+  </style>
+</head>
+<body>
+  <? var url = getScriptUrl(); ?>
+  <div class="top-bar">
+    <a href="<?= url ?>" class="btn-back"><i class="ph ph-arrow-left"></i></a>
+    <h2 class="page-title">เวลาชดเชยของฉัน</h2>
+    <div style="width: 40px;"></div>
+  </div>
+
+  <div class="container">
+    
+    <!-- เลือกชื่อพนักงาน -->
+    <div class="name-selector">
+      <label>เลือกชื่อของคุณเพื่อดูข้อมูล</label>
+      <select id="empSelect">
+        <option value="">-- กำลังโหลดรายชื่อ... --</option>
+      </select>
+      <button onclick="loadMyData()" id="btnLoad">ดูข้อมูล</button>
+    </div>
+
+    <!-- สรุปยอด -->
+    <div class="balance-card" id="balanceCard">
+      <div class="balance-title"><i class="ph ph-clock-counter-clockwise"></i> ยอดเวลาชดเชยสะสม (ใช้กลับก่อนเวลาได้)</div>
+      <h2 class="balance-amount"><span id="lblBalance">0</span> <span class="balance-unit">นาที</span></h2>
+      
+      <div class="stats-row">
+        <div class="stat-box">
+          <p>สะสมทั้งหมด</p>
+          <h4 id="lblEarned" class="text-green">+0 นาที</h4>
+        </div>
+        <div class="stat-box">
+          <p>ใช้ไปแล้ว</p>
+          <h4 id="lblUsed" class="text-red">-0 นาที</h4>
+        </div>
+      </div>
+    </div>
+
+    <!-- ประวัติ -->
+    <div class="history-card" id="historyCard">
+      <h3><i class="ph ph-list-dashes"></i> ประวัติ 5 วันล่าสุด</h3>
+      <div id="logsContainer"></div>
+    </div>
+
+  </div>
+
+  <script>
+    window.onload = function() {
+      // โหลดรายชื่อพนักงานมาใส่ Dropdown
+      google.script.run.withSuccessHandler(function(users) {
+        const select = document.getElementById('empSelect');
+        select.innerHTML = '<option value="">-- เลือกชื่อของคุณ --</option>';
+        users.forEach(u => {
+          select.innerHTML += `<option value="${u.label}">${u.label}</option>`;
+        });
+      }).getKnownFaces();
+    };
+
+    function loadMyData() {
+      const name = document.getElementById('empSelect').value;
+      if(!name) return alert("กรุณาเลือกชื่อก่อนครับ");
+
+      const btn = document.getElementById('btnLoad');
+      btn.innerHTML = "<i class='ph ph-spinner ph-spin'></i> กำลังโหลดข้อมูล...";
+      btn.disabled = true;
+
+      google.script.run.withSuccessHandler(function(data) {
+        document.getElementById('lblBalance').innerText = data.balance;
+        document.getElementById('lblEarned').innerText = "+" + data.totalEarned + " นาที";
+        document.getElementById('lblUsed').innerText = "-" + data.totalUsed + " นาที";
+        
+        // วาดประวัติ
+        let logsHtml = "";
+        if(data.logs.length === 0) {
+          logsHtml = "<div style='text-align:center; color:#9ca3af; font-size:13px;'>ไม่มีประวัติในระบบ</div>";
+        } else {
+          data.logs.forEach(log => {
+            let compText = "";
+            if (log.earned > 0) compText += `<span class="text-green">+${log.earned} น.</span><br>`;
+            if (log.used > 0) compText += `<span class="text-red">-${log.used} น.</span>`;
+            if (!compText) compText = "<span style='color:#9ca3af'>-</span>";
+
+            logsHtml += `
+              <div class="log-item">
+                <div>
+                  <div class="log-date">${log.date}</div>
+                  <div class="log-times">เข้า: ${log.timeIn} | ออก: ${log.timeOut || '-'}</div>
+                </div>
+                <div class="log-comp">${compText}</div>
+              </div>
+            `;
+          });
+        }
+        document.getElementById('logsContainer').innerHTML = logsHtml;
+
+        // แสดง Card
+        document.getElementById('balanceCard').style.display = "flex";
+        document.getElementById('historyCard').style.display = "block";
+        
+        btn.innerHTML = "โหลดข้อมูลอัปเดตแล้ว";
+        setTimeout(() => { btn.innerHTML = "ดูข้อมูล"; btn.disabled = false; }, 2000);
+
+      }).getMyCompStats(name);
+    }
+  </script>
+</body>
+</html>
