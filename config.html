@@ -2,86 +2,165 @@
 <html>
 <head>
   <base target="_top">
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
-    body { font-family: 'Sarabun', sans-serif; padding: 20px; background: #f8f9fa; text-align: center; }
-    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    h2 { color: #333; }
-    input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
-    label { font-weight: bold; display: block; text-align: left; margin-left: 5%; margin-top: 10px;}
+    :root {
+      --primary: #00B14F;
+      --bg-color: #F4F7F6;
+      --card-bg: #FFFFFF;
+      --text-main: #1F2937;
+      --text-muted: #6B7280;
+    }
     
-    .btn { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; font-size: 16px; width: 100%; margin-top: 15px; }
-    .btn-save { background: #28a745; }
-    .btn-get-loc { background: #17a2b8; margin-bottom: 20px; }
-    .btn-back { background: #6c757d; margin-top: 10px; }
+    body { 
+      font-family: 'Sarabun', sans-serif; 
+      background-color: var(--bg-color); 
+      margin: 0; padding: 0; 
+      display: flex; flex-direction: column; align-items: center; 
+    }
+
+    .top-bar {
+      width: 100%; padding: 20px; display: flex; align-items: center; justify-content: space-between;
+      box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+      position: sticky; top: 0; z-index: 10;
+    }
     
-    .note { font-size: 12px; color: #666; text-align: left; margin-left: 5%; margin-bottom: 20px; }
+    .btn-back {
+      background: var(--bg-color); border: none; width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: #4b5563; font-size: 20px; text-decoration: none; transition: 0.2s;
+    }
+    .btn-back:active { transform: scale(0.9); }
+
+    .page-title { font-size: 18px; font-weight: 600; color: var(--text-main); margin: 0; }
+    
+    .container {
+      width: 90%; max-width: 500px; margin: 20px auto;
+    }
+
+    .card {
+      background: var(--card-bg); padding: 24px; border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+      color: var(--text-main); font-weight: 600; font-size: 16px;
+    }
+
+    .card-header i { font-size: 22px; color: var(--primary); }
+
+    .form-group { margin-bottom: 16px; }
+    
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    
+    input { 
+      width: 100%; padding: 14px 16px; font-size: 15px; border: 2px solid #e5e7eb; 
+      border-radius: 12px; box-sizing: border-box; transition: 0.3s; font-family: 'Sarabun';
+    }
+    input:focus { border-color: var(--primary); outline: none; }
+    
+    .btn { 
+      padding: 16px; font-size: 16px; font-weight: 600; border: none; border-radius: 12px; 
+      cursor: pointer; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:active { transform: scale(0.97); }
+    
+    .btn-save { background: var(--primary); color: white; box-shadow: 0 8px 20px rgba(0, 177, 79, 0.2); margin-top: 10px; }
+    .btn-get-loc { background: #eef2ff; color: #4f46e5; margin-bottom: 20px; border: 1px dashed #c7d2fe; }
+    
+    .note { font-size: 12px; color: #9ca3af; margin-top: 6px; display: flex; gap: 4px; }
   </style>
 </head>
 <body>
-
-<div class="container">
-  <h2>⚙️ ตั้งค่าพิกัด GPS</h2>
-  <p>กำหนดจุดที่อนุญาตให้สแกนหน้าได้</p>
-
-  <button class="btn btn-get-loc" onclick="getCurrentLocation()">📍 ดึงตำแหน่งปัจจุบันของฉัน</button>
-
-  <label>ละติจูด (Latitude):</label>
-  <input type="number" step="any" id="lat" placeholder="เช่น 13.7563">
-
-  <label>ลองจิจูด (Longitude):</label>
-  <input type="number" step="any" id="lng" placeholder="เช่น 100.5018">
-
-  <label>ระยะที่ยอมรับได้ (กิโลเมตร):</label>
-  <input type="number" step="0.01" id="radius" placeholder="เช่น 0.1 (คือ 100 เมตร)">
-  <div class="note">* ใส่ 0 หากไม่ต้องการจำกัด GPS</div>
-
-  <button class="btn btn-save" onclick="saveSettings()">บันทึกการตั้งค่า</button>
-  
   <? var url = getScriptUrl(); ?>
-  <a href="<?= url ?>" style="text-decoration:none;">
-    <button class="btn btn-back">กลับเมนูหลัก</button>
-  </a>
-</div>
+  
+  <div class="top-bar">
+    <a href="<?= url ?>" class="btn-back"><i class="ph ph-arrow-left"></i></a>
+    <h2 class="page-title">ตั้งค่าระบบ (Admin)</h2>
+    <div style="width: 40px;"></div>
+  </div>
 
-<script>
-  // โหลดค่าเดิมเมื่อเปิดหน้า
-  window.onload = function() {
-    google.script.run.withSuccessHandler(function(config) {
-      document.getElementById('lat').value = config.lat || "";
-      document.getElementById('lng').value = config.lng || "";
-      document.getElementById('radius').value = config.radius || "0.5";
-    }).getConfig();
-  };
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <i class="ph ph-map-pin-line"></i> กำหนดจุดสแกนเข้างาน
+      </div>
 
-  function getCurrentLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        document.getElementById('lat').value = position.coords.latitude;
-        document.getElementById('lng').value = position.coords.longitude;
-        alert("✅ ดึงพิกัดเรียบร้อย");
-      }, function(error) {
-        alert("❌ ไม่สามารถดึงตำแหน่งได้: " + error.message);
-      });
-    } else {
-      alert("Browser นี้ไม่รองรับ Geolocation");
+      <button class="btn btn-get-loc" onclick="getCurrentLocation()">
+        <i class="ph ph-crosshair"></i> ดึงพิกัดปัจจุบันของฉันมาใช้
+      </button>
+
+      <div class="form-group">
+        <label>ละติจูด (Latitude)</label>
+        <input type="number" step="any" id="lat" placeholder="เช่น 13.7563">
+      </div>
+
+      <div class="form-group">
+        <label>ลองจิจูด (Longitude)</label>
+        <input type="number" step="any" id="lng" placeholder="เช่น 100.5018">
+      </div>
+
+      <div class="form-group" style="margin-top: 24px;">
+        <label>ระยะที่ยอมรับได้ (กิโลเมตร)</label>
+        <input type="number" step="0.01" id="radius" placeholder="เช่น 0.1 (100 เมตร)">
+        <div class="note"><i class="ph ph-info"></i> ใส่ 0 หากไม่ต้องการจำกัดพื้นที่ GPS</div>
+      </div>
+
+      <button class="btn btn-save" onclick="saveSettings()">
+        <i class="ph ph-floppy-disk"></i> บันทึกการตั้งค่า
+      </button>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      google.script.run.withSuccessHandler(function(config) {
+        document.getElementById('lat').value = config.lat || "";
+        document.getElementById('lng').value = config.lng || "";
+        document.getElementById('radius').value = config.radius !== undefined ? config.radius : "0.5";
+      }).getConfig();
+    };
+
+    function getCurrentLocation() {
+      const btn = document.querySelector('.btn-get-loc');
+      btn.innerHTML = "<i class='ph ph-spinner ph-spin'></i> กำลังดึงพิกัด...";
+      
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          document.getElementById('lat').value = position.coords.latitude;
+          document.getElementById('lng').value = position.coords.longitude;
+          btn.innerHTML = "<i class='ph ph-check-circle'></i> ดึงพิกัดเรียบร้อย";
+          setTimeout(() => { btn.innerHTML = "<i class='ph ph-crosshair'></i> ดึงพิกัดปัจจุบันของฉันมาใช้"; }, 2000);
+        }, function(error) {
+          alert("ไม่สามารถดึงตำแหน่งได้ กรุณาอนุญาตให้ใช้งาน GPS");
+          btn.innerHTML = "<i class='ph ph-crosshair'></i> ดึงพิกัดปัจจุบันของฉันมาใช้";
+        });
+      } else {
+        alert("Browser นี้ไม่รองรับ Geolocation");
+      }
     }
-  }
 
-  function saveSettings() {
-    var lat = document.getElementById('lat').value;
-    var lng = document.getElementById('lng').value;
-    var radius = document.getElementById('radius').value;
+    function saveSettings() {
+      var lat = document.getElementById('lat').value;
+      var lng = document.getElementById('lng').value;
+      var radius = document.getElementById('radius').value;
 
-    if(!lat || !lng || !radius) {
-      return alert("กรุณากรอกข้อมูลให้ครบ");
+      if(lat === "" || lng === "" || radius === "") {
+        return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+      }
+
+      const btn = document.querySelector('.btn-save');
+      btn.innerHTML = "<i class='ph ph-spinner ph-spin'></i> กำลังบันทึก...";
+
+      google.script.run.withSuccessHandler(function(msg) {
+        btn.innerHTML = "<i class='ph ph-check-circle'></i> บันทึกสำเร็จ";
+        setTimeout(() => { btn.innerHTML = "<i class='ph ph-floppy-disk'></i> บันทึกการตั้งค่า"; }, 2000);
+      }).saveConfig(lat, lng, radius);
     }
-
-    google.script.run.withSuccessHandler(function(msg) {
-      alert(msg);
-    }).saveConfig(lat, lng, radius);
-  }
-</script>
+  </script>
 
 </body>
 </html>
